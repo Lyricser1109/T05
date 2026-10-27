@@ -215,6 +215,50 @@ h1 span {
 
 /* Legends and SVG axes */
 
+.donut-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  min-width: 0;
+  margin: 0 0 10px;
+  padding: 0;
+  border: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.donut-controls legend {
+  margin-bottom: 6px;
+  padding: 0;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.donut-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.donut-controls input {
+  margin: 0;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.donut-controls input:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+
+.donut-controls:disabled label,
+.donut-controls:disabled input {
+  cursor: wait;
+}
+
 .scatter-filters {
   display: flex;
   flex-wrap: wrap;

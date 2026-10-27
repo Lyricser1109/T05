@@ -7,14 +7,16 @@ A single responsive page with four D3 charts. It uses plain HTML, CSS and JavaSc
 - `index.html` — page structure, introductory text, chart containers and script order.
 - `styles.css` — layout, colours, legends and responsive styles.
 - `scatterplot.js` — annual energy consumption versus star rating.
-- `donut-chart.js` — count-weighted energy totals by screen technology across all sizes.
+- `donut-chart.js` — toggle between count-weighted energy totals and supplied means by screen technology across all sizes.
 - `bar-chart.js` — supplied mean annual consumption for 55-inch TVs by technology.
 - `line-chart.js` — supplied average spot prices from 1998 to 2024.
 - `data/` — the original supplied CSV files, left unchanged.
 
 Each chart script contains its own CSV loading and chart function. D3 loads before these scripts, using `defer` so the HTML containers exist first. Each SVG has a `viewBox`, and `ResizeObserver` redraws the chart when its container changes width. The page uses two columns on large screens and one on smaller screens. Chart marks have native hover titles; SVG descriptions and CSV links provide additional context.
 
-The scatterplot has star rating on the horizontal axis and annual energy consumption on the vertical axis. Its three checkboxes allow any combination of LCD, LED and OLED, with all selected initially. Uncheck LCD to compare LED and OLED alone. The axes stay fixed when filtering, a status line reports the visible record count, and an empty selection displays a prompt. Other charts are unaffected by these controls.
+The scatterplot has star rating on the horizontal axis and annual energy consumption on the vertical axis. Its three checkboxes allow any combination of LCD, LED and OLED, with all selected initially. Uncheck LCD to compare LED and OLED alone. The axes stay fixed when filtering, and an empty selection displays a prompt. Other charts are unaffected by these controls.
+
+The donut's radio buttons switch between **Combined energy** (the default) and **Mean per TV**. Both datasets load once; changing the measure updates the arcs, legend, title, notes and source link. The selected measure is retained on resize. Mean mode labels each technology's supplied mean directly and displays no combined total or share percentages.
 
 ## Run locally
 
@@ -33,7 +35,7 @@ The supplied files do not establish the original publisher, TV collection date, 
 - **55-inch bars:** uses the existing `Mean(Labelled energy consumption (kWh/year))` column in `Ex5_TV_energy_55inchtv_byScreenType.csv`: LCD 326.0, LED 330.3 and OLED 386.5 kWh/year after rounding. These supplied means are displayed directly; they are not recalculated from the grouped TV CSV, whose weighting may differ.
 - **Spot-price line:** uses `Year` and `Average Price (notTas-Snowy)` in `Ex5_ARE_Spot_Prices.csv`. There are 27 annual observations from 1998 through 2024. The provided average covers Queensland, NSW, Victoria and South Australia, excluding Tasmania and Snowy. Prices are AUD/MWh and are wholesale spot prices, not household retail rates.
 
-`Ex5_TV_energy_Allsizes_byScreenType.csv` contains technology **means**, not totals. It is retained as supplied but is not used for the combined-energy donut. Summing or pie-charting these means would describe a different measure from total energy across the represented TVs.
+`Ex5_TV_energy_Allsizes_byScreenType.csv` supplies the donut's **Mean per TV** mode: LCD 306.5, LED 355.7 and OLED 533.1 kWh/year after rounding. These are the supplied technology means, not values recalculated using `count` from the grouped TV CSV. Mean-mode arc sizes are proportional to these means; they do not represent shares of combined TV energy. The centre labels the measure rather than displaying the sum of the means as a total or an overall average.
 
 Blank numeric values are treated as missing. Non-finite chart values are excluded, and CSV loading errors show a message in the affected chart. The supplied files currently have valid values for the fields used in these charts.
 

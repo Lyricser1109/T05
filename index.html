@@ -54,12 +54,16 @@
         <div class="chart-heading">
           <p class="eyebrow">02 / ALL SCREEN SIZES</p>
           <h2 id="donut-heading">Combined energy by technology</h2>
-          <p>A count-weighted estimate of annual energy across the TVs represented in the dataset, grouped by screen technology.</p>
+          <p id="donut-intro">A count-weighted estimate of annual energy across the TVs represented in the dataset, grouped by screen technology.</p>
         </div>
+        <fieldset id="donut-controls" class="donut-controls" aria-describedby="donut-note" disabled>
+          <legend>Energy measure</legend>
+          <label><input type="radio" name="donut-metric" value="total" aria-controls="donut-chart" checked>Combined energy</label>
+          <label><input type="radio" name="donut-metric" value="mean" aria-controls="donut-chart">Mean per screen technology</label>
+        </fieldset>
         <div id="donut-chart" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading technology totals…</p></div>
         <ul id="donut-legend" class="donut-legend" aria-label="Technology totals and shares"></ul>
-        <p class="chart-note">Calculated as Σ(energy_consumpt × count). Shares reflect the dataset’s model mix, rather than household electricity use or market sales.</p>
-        <a class="data-link" href="data/Ex5_TV_energy.csv">View TV dataset (CSV) <span aria-hidden="true">↗</span></a>
+        <p id="donut-note" class="chart-note">Calculated by energy consumption to the number of TV entries.</p>
       </section>
 
       <section class="chart-card" aria-labelledby="bar-heading">
