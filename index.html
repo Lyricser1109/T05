@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f7f2">
+  <meta name="description" content="Four D3 charts exploring television energy consumption, star ratings, screen technologies and Australian electricity spot prices.">
+  <title>T05 DV</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- D3 loads first; each chart has its own script and CSV loading code. -->
+  <script src="https://d3js.org/d3.v7.min.js" defer></script>
+  <script src="scatterplot.js" defer></script>
+  <script src="donut-chart.js" defer></script>
+  <script src="bar-chart.js" defer></script>
+  <script src="line-chart.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to charts</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#main-content">D3 Charts Dashboard</a>
+      <span class="header-note">T05 / D3 data visualisation</span>
+    </div>
+  </header>
+
+  <main id="main-content" class="container">
+    <section class="introduction" aria-labelledby="page-heading">
+      <p class="eyebrow">Australian TV Energy Consumption</p>
+      <h1 id="page-heading">TV energy,<br><span>in perspective.</span></h1>
+      <p class="intro-copy">The various factors that contribute to a television's energy can be shown through several relationships through the charts below.</p>
+      <div class="intro-details"></div>
+    </section>
+
+    <div class="chart-grid">
+      <section class="chart-card" aria-labelledby="scatter-heading">
+        <div class="chart-heading">
+          <p class="eyebrow">01 / STAR RATING</p>
+          <h2 id="scatter-heading">Star rating against energy consumption.</h2>
+          <p>Compare annual energy consumption with star rating. Each point is a row in the supplied TV dataset and may represent multiple models.</p>
+        </div>
+        <fieldset id="scatter-filters" class="scatter-filters" aria-describedby="scatter-filter-help" disabled>
+          <legend>Show screen technologies</legend>
+          <label><input type="checkbox" value="LCD" aria-controls="scatterplot" checked><span class="swatch lcd" aria-hidden="true"></span>LCD</label>
+          <label><input type="checkbox" value="LED" aria-controls="scatterplot" checked><span class="swatch led" aria-hidden="true"></span>LED / LCD (LED)</label>
+          <label><input type="checkbox" value="OLED" aria-controls="scatterplot" checked><span class="swatch oled" aria-hidden="true"></span>OLED</label>
+        </fieldset>
+        <p id="scatter-filter-help" class="filter-help">Choose one or more technologies to compare</p>
+        <div id="scatterplot" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading TV data…</p></div>
+        <p class="chart-note">Screen size and other model differences also affect energy use; a star rating alone does not determine annual consumption.</p>
+      </section>
+
+      <section class="chart-card" aria-labelledby="donut-heading">
+        <div class="chart-heading">
+          <p class="eyebrow">02 / ALL SCREEN SIZES</p>
+          <h2 id="donut-heading">Combined energy by technology</h2>
+          <p>A count-weighted estimate of annual energy across the TVs represented in the dataset, grouped by screen technology.</p>
+        </div>
+        <div id="donut-chart" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading technology totals…</p></div>
+        <ul id="donut-legend" class="donut-legend" aria-label="Technology totals and shares"></ul>
+        <p class="chart-note">Calculated as Σ(energy_consumpt × count). Shares reflect the dataset’s model mix, rather than household electricity use or market sales.</p>
+        <a class="data-link" href="data/Ex5_TV_energy.csv">View TV dataset (CSV) <span aria-hidden="true">↗</span></a>
+      </section>
+
+      <section class="chart-card" aria-labelledby="bar-heading">
+        <div class="chart-heading">
+          <p class="eyebrow">03 / A COMMON SCREEN SIZE</p>
+          <h2 id="bar-heading">Comparing 55-inch TVs</h2>
+          <p>Compare the supplied mean annual energy consumption for LCD, LED and OLED televisions at the same screen size.</p>
+        </div>
+        <div id="bar-chart" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading 55-inch TV data…</p></div>
+        <p class="chart-note">Values are the means in the supplied 55-inch summary. They are not the consumption of every model within a technology.</p>
+        <a class="data-link" href="data/Ex5_TV_energy_55inchtv_byScreenType.csv">View 55-inch summary (CSV) <span aria-hidden="true">↗</span></a>
+      </section>
+
+      <section class="chart-card" aria-labelledby="line-heading">
+        <div class="chart-heading">
+          <p class="eyebrow">04 / THE WIDER PICTURE</p>
+          <h2 id="line-heading">Electricity spot prices, 1998–2024</h2>
+          <p>Follow the supplied annual average of spot prices for Queensland, New South Wales, Victoria and South Australia.</p>
+        </div>
+        <div id="line-chart" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading annual prices…</p></div>
+        <p class="chart-note">Uses “Average Price (notTas-Snowy)”, excluding Tasmania and Snowy. Wholesale spot prices are different from household retail electricity rates.</p>
+        <a class="data-link" href="data/Ex5_ARE_Spot_Prices.csv">View spot-price dataset (CSV) <span aria-hidden="true">↗</span></a>
+      </section>
+    </div>
+
+    <aside class="data-context" aria-labelledby="data-heading">
+      <h2 id="data-heading">A note on the data</h2>
+      <p>These charts use the CSV files supplied for T05. “LED” includes the TV dataset’s “LCD (LED)” label. The TV rows are grouped records, so point counts and model counts differ. The original publishers and TV collection date have not been confirmed; these charts do not establish current market availability.</p>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner"><p>© 2026 Leroy Lau · Powerwise</p><p>GenAI acknowledgement: OpenAI ChatGPT assisted with code and content.</p></div>
+  </footer>
+</body>
+</html>
