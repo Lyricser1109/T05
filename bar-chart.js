@@ -6,11 +6,11 @@ const createBarChart = (data) => {
         .range(["#0072b2", "#d62728", "#f2c811"]);
 
     const drawChart = () => {
-        // Sizes and margins: reserve space for technology and value labels.
+        // Sizes and margins: energy is vertical, technology is horizontal.
         const viewW = container.node().clientWidth;
         if (viewW <= 0) return;
         const viewH = 320;
-        const margin = { top: 32, right: 52, bottom: 50, left: 48 };
+        const margin = { top: 32, right: 18, bottom: 50, left: 48 };
         const chartW = viewW - margin.left - margin.right;
         const chartH = viewH - margin.top - margin.bottom;
 
@@ -18,7 +18,7 @@ const createBarChart = (data) => {
         const svg = container.append("svg")
             .attr("viewBox", `0 0 ${viewW} ${viewH}`)
             .attr("role", "img")
-            .attr("aria-label", "Horizontal bar chart comparing mean annual energy consumption of 55-inch LCD, LED and OLED TVs.");
+            .attr("aria-label", "Vertical bar chart comparing mean annual energy consumption of 55-inch LCD, LED and OLED TVs.");
         svg.append("title").text("Mean annual energy consumption for 55-inch TVs");
         svg.append("desc")
             .text(data.map(d => `${d.technology}: ${d3.format(".1f")(d.energy)} kilowatt-hours per year.`).join(" "));
@@ -26,56 +26,62 @@ const createBarChart = (data) => {
         const chart = svg.append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-        // Scales: a zero baseline makes bar lengths comparable.
-        const xScale = d3.scaleLinear()
+        // Scales: categories across the bottom, energy from a zero baseline.
+        const xScale = d3.scaleBand()
+            .domain(data.map(d => d.technology))
+            .range([0, chartW])
+            .padding(0.28);
+        const yScale = d3.scaleLinear()
             .domain([0, d3.max(data, d => d.energy)])
             .nice()
-            .range([0, chartW]);
-        const yScale = d3.scaleBand()
-            .domain(data.map(d => d.technology))
-            .range([0, chartH])
-            .padding(0.38);
+            .range([chartH, 0]);
 
         chart.append("g")
             .attr("class", "grid")
-            .attr("transform", `translate(0, ${chartH})`)
-            .call(d3.axisBottom(xScale).ticks(viewW < 400 ? 4 : 5).tickSize(-chartH).tickFormat(""));
+            .call(d3.axisLeft(yScale).ticks(5).tickSize(-chartW).tickFormat(""));
         chart.append("g")
             .attr("class", "axis")
             .attr("transform", `translate(0, ${chartH})`)
-            .call(d3.axisBottom(xScale).ticks(viewW < 400 ? 4 : 5).tickSizeOuter(0));
+            .call(d3.axisBottom(xScale).tickSizeOuter(0));
         chart.append("g")
             .attr("class", "axis")
-            .call(d3.axisLeft(yScale).tickSize(0).tickPadding(8))
-            .select(".domain").remove();
+            .call(d3.axisLeft(yScale).ticks(5).tickFormat(d3.format(",.0f")).tickSizeOuter(0));
 
         // Bind the technology rows to bars and numeric labels.
         const barAndLabel = chart.selectAll(".bar-row")
             .data(data)
             .join("g")
             .attr("class", "bar-row")
-            .attr("transform", d => `translate(0, ${yScale(d.technology)})`);
+            .attr("transform", d => `translate(${xScale(d.technology)}, 0)`);
 
         barAndLabel.append("rect")
-            .attr("width", d => xScale(d.energy))
-            .attr("height", yScale.bandwidth())
+            .attr("y", d => yScale(d.energy))
+            .attr("width", xScale.bandwidth())
+            .attr("height", d => chartH - yScale(d.energy))
             .attr("rx", 3)
             .attr("fill", d => colours(d.technology))
             .append("title")
             .text(d => `${d.technology}: ${d3.format(".1f")(d.energy)} kWh/year`);
         barAndLabel.append("text")
             .attr("class", "value-label")
-            .attr("x", d => xScale(d.energy) + 7)
-            .attr("y", yScale.bandwidth() / 2)
-            .attr("dy", "0.35em")
+            .attr("x", xScale.bandwidth() / 2)
+            .attr("y", d => (yScale(d.energy) + chartH) / 2)
+            .attr("dominant-baseline", "middle")
+            .attr("text-anchor", "middle")
+            .style("fill", d => d.technology === "OLED" ? "#292f2a" : "#fffefa")
             .text(d => d3.format(".1f")(d.energy));
 
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("x", margin.left)
+            .attr("y", 15)
+            .text("Mean annual energy (kWh/year)");
         svg.append("text")
             .attr("class", "axis-label")
             .attr("x", margin.left + chartW / 2)
             .attr("y", viewH - 9)
             .attr("text-anchor", "middle")
-            .text("Mean annual energy (kWh/year)");
+            .text("Screen technology");
     };
 
     container.select(".chart-status").remove();

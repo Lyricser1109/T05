@@ -1,6 +1,9 @@
-// Chart function: show the supplied four-state average from 1998 to 2024.
+// Chart function: average the available regions, with a visual break in 2005.
 const createLineChart = (data) => {
     const container = d3.select("#line-chart");
+    const earlyRows = data.filter(d => d.year <= 2004);
+    const laterRows = data.filter(d => d.year >= 2005);
+    const averageRows = data.filter(d => Number.isFinite(d.price));
 
     const drawChart = () => {
         // Sizes: scale the plot to the card and keep text at a readable size.
@@ -15,17 +18,17 @@ const createLineChart = (data) => {
         const svg = container.append("svg")
             .attr("viewBox", `0 0 ${viewW} ${viewH}`)
             .attr("role", "img")
-            .attr("aria-label", "Line chart of annual average spot prices for Queensland, New South Wales, Victoria and South Australia, 1998 to 2024, in Australian dollars per megawatt-hour.");
+            .attr("aria-label", "Annual average spot prices across available regions, including Snowy where recorded. The red segment covers 1998 to 2004 and the blue segment covers 2005 to 2024, with a break between them. Prices are Australian dollars per megawatt-hour.");
         svg.append("title").text("Annual average electricity spot prices, 1998–2024");
-        const firstYear = data[0];
-        const lastYear = data[data.length - 1];
+        const firstYear = averageRows[0];
+        const lastYear = averageRows[averageRows.length - 1];
         svg.append("desc")
-            .text(`${data.length} annual values. The supplied average is ${firstYear.price} AUD per MWh in ${firstYear.year} and ${lastYear.price} in ${lastYear.year}. Tasmania and Snowy are excluded.`);
+            .text(`${averageRows.length} annual average values, from ${firstYear.price} AUD per MWh in ${firstYear.year} to ${lastYear.price} in ${lastYear.year}. Each available region has equal weight: five regions in 1998–2004, six in 2005–2007 and five in 2008–2024. Snowy is included through 2007 and Tasmania from 2005. Missing regional prices are omitted. The segments are not connected between 2004 and 2005.`);
 
         const chart = svg.append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-        // Scales: years are evenly spaced, and prices start from zero.
+        // Share scales across both periods; 1998 is at x = 0.
         const xScale = d3.scaleLinear()
             .domain([1998, 2024])
             .range([0, chartW]);
@@ -41,35 +44,45 @@ const createLineChart = (data) => {
             .attr("class", "axis")
             .attr("transform", `translate(0, ${chartH})`)
             .call(d3.axisBottom(xScale)
-                .tickValues(viewW < 400 ? [1998, 2010, 2024] : [1998, 2005, 2010, 2015, 2020, 2024])
+                .tickValues(d3.range(1998, 2025, 4)) // 1998, 2002, ... 2022
                 .tickFormat(d3.format("d"))
                 .tickSizeOuter(0));
         chart.append("g")
             .attr("class", "axis")
             .call(d3.axisLeft(yScale).ticks(5).tickSizeOuter(0));
 
-        // Join annual observations with a straight line, without smoothing peaks.
-        const line = d3.line()
-            .x(d => xScale(d.year))
-            .y(d => yScale(d.price));
-        chart.append("path")
-            .datum(data)
-            .attr("fill", "none")
-            .attr("stroke", "#d62728")
-            .attr("stroke-width", 2.5)
-            .attr("stroke-linejoin", "round")
-            .attr("d", line);
-        chart.selectAll("circle")
-            .data(data)
-            .join("circle")
-            .attr("cx", d => xScale(d.year))
-            .attr("cy", d => yScale(d.price))
-            .attr("r", 3)
-            .attr("fill", "#d62728")
-            .attr("stroke", "#fffefa")
-            .attr("stroke-width", 1)
-            .append("title")
-            .text(d => `${d.year}: $${d3.format(".2f")(d.price)} AUD/MWh`);
+        // Draw separate solid paths, leaving no connector from 2004 to 2005.
+        // Defined also leaves gaps if a price is missing within either period.
+        const drawSegment = (rows, label, colour, className) => {
+            const series = chart.append("g")
+                .attr("class", className);
+            const line = d3.line()
+                .defined(d => Number.isFinite(d.price))
+                .x(d => xScale(d.year))
+                .y(d => yScale(d.price));
+
+            series.append("path")
+                .datum(rows)
+                .attr("fill", "none")
+                .attr("stroke", colour)
+                .attr("stroke-width", 2.5)
+                .attr("stroke-linejoin", "round")
+                .attr("d", line);
+            series.selectAll("circle")
+                .data(rows.filter(d => Number.isFinite(d.price)))
+                .join("circle")
+                .attr("cx", d => xScale(d.year))
+                .attr("cy", d => yScale(d.price))
+                .attr("r", 4)
+                .attr("fill", colour)
+                .attr("stroke", "#fffefa")
+                .attr("stroke-width", 1)
+                .append("title")
+                .text(d => `${label}, ${d.year}: $${d3.format(".2f")(d.price)} AUD/MWh (${d.regionCount} regions)`);
+        };
+
+        drawSegment(earlyRows, "Available-region average", "#d62728", "early-series");
+        drawSegment(laterRows, "Available-region average", "#0072b2", "later-series");
 
         svg.append("text")
             .attr("class", "axis-label")
@@ -91,18 +104,29 @@ const createLineChart = (data) => {
     resizeObserver.observe(container.node());
 };
 
-// Use the provided average column; blank prices are missing rather than zero.
+// Calculate the mean directly from the regional columns, including Snowy.
+// Each available region has equal weight; blank cells do not count as zero.
 d3.csv("data/Ex5_ARE_Spot_Prices.csv", d => {
-    const price = d["Average Price (notTas-Snowy)"];
+    const regionalColumns = [
+        "Queensland ($ per megawatt hour)",
+        "New South Wales ($ per megawatt hour)",
+        "Victoria ($ per megawatt hour)",
+        "South Australia ($ per megawatt hour)",
+        "Tasmania ($ per megawatt hour)",
+        "Snowy ($ per megawatt hour)"
+    ];
+    const prices = regionalColumns
+        .map(column => d[column].trim() === "" ? NaN : +d[column])
+        .filter(value => Number.isFinite(value));
     return {
         year: +d.Year,
-        price: price.trim() === "" ? NaN : +price
+        price: prices.length > 0 ? d3.mean(prices) : NaN,
+        regionCount: prices.length
     };
 }).then(data => {
-    const validRows = data.filter(d => Number.isFinite(d.year) && d.year >= 1998
-        && d.year <= 2024 && Number.isFinite(d.price));
+    const validRows = data.filter(d => Number.isFinite(d.year) && d.year >= 1998 && d.year <= 2024);
     validRows.sort((a, b) => d3.ascending(a.year, b.year));
-    if (validRows.length === 0) throw new Error("No valid annual spot prices were found.");
+    if (!validRows.some(d => Number.isFinite(d.price))) throw new Error("No valid annual average spot prices were found.");
     createLineChart(validRows);
 }).catch(error => {
     d3.select("#line-chart").attr("aria-busy", "false")

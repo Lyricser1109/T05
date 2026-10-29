@@ -321,7 +321,8 @@ h1 span {
   font-size: 12px;
 }
 
-.technology-legend {
+.technology-legend,
+.price-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 18px;
@@ -332,10 +333,26 @@ h1 span {
   font-size: 11px;
 }
 
-.technology-legend li {
+.technology-legend li,
+.price-legend li {
   display: flex;
   align-items: center;
   gap: 7px;
+}
+
+.price-key {
+  display: inline-block;
+  width: 18px;
+  flex: 0 0 18px;
+  border-top: 3px solid;
+}
+
+.average-price {
+  border-color: #d62728;
+}
+
+.later-average-price {
+  border-color: #0072b2;
 }
 
 .swatch {

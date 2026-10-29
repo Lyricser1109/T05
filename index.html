@@ -27,7 +27,7 @@
   <main id="main-content" class="container">
     <section class="introduction" aria-labelledby="page-heading">
       <p class="eyebrow">Australian TV Energy Consumption</p>
-      <h1 id="page-heading">TV energy,<br><span>in perspective.</span></h1>
+      <h1 id="page-heading">TV <span>Screen Technology</span> comparison</h1>
       <p class="intro-copy">The various factors that contribute to a television's energy can be shown through several relationships through the charts below.</p>
       <div class="intro-details"></div>
     </section>
@@ -74,18 +74,20 @@
         </div>
         <div id="bar-chart" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading 55-inch TV data…</p></div>
         <p class="chart-note">Values are the means in the supplied 55-inch summary. They are not the consumption of every model within a technology.</p>
-        <a class="data-link" href="data/Ex5_TV_energy_55inchtv_byScreenType.csv">View 55-inch summary (CSV) <span aria-hidden="true">↗</span></a>
       </section>
 
       <section class="chart-card" aria-labelledby="line-heading">
         <div class="chart-heading">
-          <p class="eyebrow">04 / THE WIDER PICTURE</p>
+          <p class="eyebrow">04 / SPOT PRICES</p>
           <h2 id="line-heading">Electricity spot prices, 1998–2024</h2>
-          <p>Follow the supplied annual average of spot prices for Queensland, New South Wales, Victoria and South Australia.</p>
+          <p>Follow average spot prices across the available regions. Snowy is included through 2007, and Tasmania joins from 2005.</p>
         </div>
+        <ul class="price-legend" aria-label="Price series">
+          <li><span class="price-key average-price" aria-hidden="true"></span>1998–2004</li>
+          <li><span class="price-key later-average-price" aria-hidden="true"></span>2005–2024</li>
+        </ul>
         <div id="line-chart" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading annual prices…</p></div>
-        <p class="chart-note">Uses “Average Price (notTas-Snowy)”, excluding Tasmania and Snowy. Wholesale spot prices are different from household retail electricity rates.</p>
-        <a class="data-link" href="data/Ex5_ARE_Spot_Prices.csv">View spot-price dataset (CSV) <span aria-hidden="true">↗</span></a>
+        <p class="chart-note">Each available region has equal weight: five regions in 1998–2004, six in 2005–2007, and five from 2008. Snowy has no values after 2007. The break marks Tasmania joining in 2005.</p>
       </section>
     </div>
 
@@ -96,7 +98,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container footer-inner"><p>© 2026 Leroy Lau · Powerwise</p><p>GenAI acknowledgement: OpenAI ChatGPT assisted with code and content.</p></div>
+    <div class="container footer-inner"><p>© 2026 Leroy Lau</p><p>GenAI acknowledgement: OpenAI ChatGPT assisted with code and content.</p></div>
   </footer>
 </body>
 </html>

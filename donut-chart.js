@@ -40,7 +40,7 @@ const createDonutChart = (datasets) => {
             .text(d => d.technology === "LED" ? "LED / LCD (LED)" : d.technology);
         legendItems.append("span")
             .attr("class", "donut-value")
-            .text(d => isMean ? `${formatEnergy(d.energy)} kWh`
+            .text(d => isMean ? `${formatEnergy(d.energy)} kWh/yr`
                 : `${formatEnergy(d.energy)} kWh/yr · ${d3.format(".1%")(d.energy / totalEnergy)}`);
 
         // Sizes: the ring adapts to the available width.
@@ -95,7 +95,7 @@ const createDonutChart = (datasets) => {
             .attr("text-anchor", "middle")
             .attr("y", 20)
             .attr("class", "axis-label")
-            .text(isMean ? "kWh" : "kWh/year · weighted");
+            .text(isMean ? "kWh/year" : "kWh/year · weighted");
     };
 
     container.select(".chart-status").remove();
