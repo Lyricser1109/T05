@@ -62,7 +62,11 @@
           <label><input type="radio" name="donut-metric" value="mean" aria-controls="donut-chart">Mean per screen technology</label>
         </fieldset>
         <div id="donut-chart" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading technology totals…</p></div>
-        <ul id="donut-legend" class="donut-legend" aria-label="Technology totals and shares"></ul>
+        <ul id="donut-legend" class="donut-legend"></ul>
+        <div class="donut-selection">
+          <output id="donut-detail"></output>
+          <button id="donut-reset" class="donut-reset" type="button" hidden>Clear selection</button>
+        </div>
         <p id="donut-note" class="chart-note">Calculated by energy consumption to the number of TV entries.</p>
       </section>
 
@@ -82,21 +86,27 @@
           <h2 id="line-heading">Electricity spot prices, 1998–2024</h2>
           <p>Follow average spot prices across the available regions. Snowy is included through 2007, and Tasmania joins from 2005.</p>
         </div>
-        <ul class="price-legend" aria-label="Price series">
-          <li><span class="price-key average-price" aria-hidden="true"></span>1998–2004</li>
-          <li><span class="price-key later-average-price" aria-hidden="true"></span>2005–2024</li>
+        <ul id="line-legend" class="price-legend">
+          <li><button class="period-option" type="button" value="early" disabled><span class="price-key average-price" aria-hidden="true"></span>1998–2004</button></li>
+          <li><button class="period-option" type="button" value="later" disabled><span class="price-key later-average-price" aria-hidden="true"></span>2005–2024</button></li>
         </ul>
-        <div id="line-chart" class="responsive-svg-container" aria-busy="true"><p class="chart-status" role="status">Loading annual prices…</p></div>
+        <div id="line-chart" class="responsive-svg-container" aria-busy="true">
+          <p class="chart-status" role="status">Loading annual prices…</p>
+          <div id="line-tooltip" class="line-tooltip" role="tooltip" hidden>
+            <p class="line-tooltip-year"></p>
+            <p class="line-tooltip-price"><strong></strong><span>AUD/MWh</span></p>
+            <p class="line-tooltip-regions"></p>
+          </div>
+        </div>
+        <div class="line-selection">
+          <output id="line-detail"></output>
+          <button id="line-reset" class="line-reset" type="button" hidden>Clear selection</button>
+        </div>
         <p class="chart-note">Each available region has equal weight: five regions in 1998–2004, six in 2005–2007, and five from 2008. Snowy has no values after 2007. The break marks Tasmania joining in 2005.</p>
       </section>
     </div>
-
-    <aside class="data-context" aria-labelledby="data-heading">
-      <h2 id="data-heading">A note on the data</h2>
-      <p>These charts use the CSV files supplied for T05. “LED” includes the TV dataset’s “LCD (LED)” label. The TV rows are grouped records, so point counts and model counts differ. The original publishers and TV collection date have not been confirmed; these charts do not establish current market availability.</p>
-    </aside>
   </main>
-
+  <br>
   <footer class="site-footer">
     <div class="container footer-inner"><p>© 2026 Leroy Lau</p><p>GenAI acknowledgement: OpenAI ChatGPT assisted with code and content.</p></div>
   </footer>

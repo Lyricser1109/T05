@@ -4,8 +4,69 @@ const createLineChart = (data) => {
     const earlyRows = data.filter(d => d.year <= 2004);
     const laterRows = data.filter(d => d.year >= 2005);
     const averageRows = data.filter(d => Number.isFinite(d.price));
+    let selectedPeriod = null;
+    let selectedYear = null;
+    const tooltip = d3.select("#line-tooltip");
+
+    const hideTooltip = () => tooltip.property("hidden", true);
+
+    // A visible HTML popup replaces the browser's plain point-title tooltip.
+    const showTooltip = (point, row) => {
+        tooltip.select(".line-tooltip-year").text(row.year);
+        tooltip.select(".line-tooltip-price strong").text(`$${d3.format(".2f")(row.price)}`);
+        tooltip.style("--point-colour", row.year <= 2004 ? "#d62728" : "#0072b2")
+            .property("hidden", false);
+
+        // Place the popup beside the point and keep it within the chart on mobile.
+        const bounds = container.node().getBoundingClientRect();
+        const dot = point.getBoundingClientRect();
+        const popup = tooltip.node().getBoundingClientRect();
+        const x = dot.left + dot.width / 2 - bounds.left;
+        const y = dot.top - bounds.top;
+        let left = x + 12;
+        if (left + popup.width > bounds.width - 8) left = x - popup.width - 12;
+        left = Math.max(8, Math.min(left, bounds.width - popup.width - 8));
+        let top = y - popup.height - 12;
+        if (top < 8) top = y + dot.height + 12;
+        top = Math.max(8, Math.min(top, bounds.height - popup.height - 8));
+        tooltip.style("left", `${left}px`).style("top", `${top}px`);
+    };
+
+    const selectPeriod = (period) => {
+        selectedPeriod = selectedPeriod === period ? null : period;
+        selectedYear = null;
+        drawChart();
+    };
+
+    const selectYear = (year) => {
+        selectedYear = selectedYear === year ? null : year;
+        selectedPeriod = selectedYear === null ? null : (selectedYear <= 2004 ? "early" : "later");
+        drawChart();
+    };
 
     const drawChart = () => {
+        const activePoint = document.activeElement;
+        const focusedYear = activePoint && activePoint.matches("#line-chart .line-point")
+            ? activePoint.__data__.year : null;
+        hideTooltip();
+        // Native controls stay in place so focus is preserved during redraws.
+        d3.select("#line-legend").selectAll("button")
+            .classed("is-selected", function() { return this.value === selectedPeriod; })
+            .attr("aria-pressed", function() { return String(this.value === selectedPeriod); });
+        const selected = averageRows.find(d => d.year === selectedYear);
+        let detailText = "";
+        if (selected) {
+            detailText = `${selected.year}: $${d3.format(".2f")(selected.price)} AUD/MWh · ${selected.regionCount} regions`;
+        } else if (selectedPeriod) {
+            const rows = (selectedPeriod === "early" ? earlyRows : laterRows)
+                .filter(d => Number.isFinite(d.price));
+            const periodLabel = selectedPeriod === "early" ? "1998–2004" : "2005–2024";
+            detailText = `${periodLabel}: $${d3.format(".2f")(d3.min(rows, d => d.price))}–$${d3.format(".2f")(d3.max(rows, d => d.price))} AUD/MWh`;
+        }
+        const detail = d3.select("#line-detail");
+        if (detail.text() !== detailText) detail.text(detailText);
+        d3.select("#line-reset").property("hidden", selectedPeriod === null);
+
         // Sizes: scale the plot to the card and keep text at a readable size.
         const viewW = container.node().clientWidth;
         if (viewW <= 0) return;
@@ -17,9 +78,7 @@ const createLineChart = (data) => {
         container.selectAll("svg").remove();
         const svg = container.append("svg")
             .attr("viewBox", `0 0 ${viewW} ${viewH}`)
-            .attr("role", "img")
-            .attr("aria-label", "Annual average spot prices across available regions, including Snowy where recorded. The red segment covers 1998 to 2004 and the blue segment covers 2005 to 2024, with a break between them. Prices are Australian dollars per megawatt-hour.");
-        svg.append("title").text("Annual average electricity spot prices, 1998–2024");
+            .attr("role", "group");
         const firstYear = averageRows[0];
         const lastYear = averageRows[averageRows.length - 1];
         svg.append("desc")
@@ -53,36 +112,59 @@ const createLineChart = (data) => {
 
         // Draw separate solid paths, leaving no connector from 2004 to 2005.
         // Defined also leaves gaps if a price is missing within either period.
-        const drawSegment = (rows, label, colour, className) => {
+        const drawSegment = (rows, label, colour, className, period) => {
             const series = chart.append("g")
-                .attr("class", className);
+                .attr("class", className)
+                .attr("opacity", !selectedPeriod || selectedPeriod === period ? 1 : 0.25);
             const line = d3.line()
                 .defined(d => Number.isFinite(d.price))
                 .x(d => xScale(d.year))
                 .y(d => yScale(d.price));
 
             series.append("path")
+                .attr("class", "line-segment")
                 .datum(rows)
                 .attr("fill", "none")
                 .attr("stroke", colour)
-                .attr("stroke-width", 2.5)
+                .attr("stroke-width", selectedPeriod === period ? 3.5 : 2.5)
                 .attr("stroke-linejoin", "round")
-                .attr("d", line);
+                .attr("d", line)
+                .on("click", () => selectPeriod(period));
             series.selectAll("circle")
                 .data(rows.filter(d => Number.isFinite(d.price)))
                 .join("circle")
+                .attr("class", "line-point")
+                .attr("tabindex", 0)
+                .attr("role", "button")
+                .attr("aria-describedby", "line-tooltip")
                 .attr("cx", d => xScale(d.year))
                 .attr("cy", d => yScale(d.price))
-                .attr("r", 4)
+                .attr("r", d => d.year === selectedYear ? 6 : 4)
                 .attr("fill", colour)
-                .attr("stroke", "#fffefa")
-                .attr("stroke-width", 1)
-                .append("title")
-                .text(d => `${label}, ${d.year}: $${d3.format(".2f")(d.price)} AUD/MWh (${d.regionCount} regions)`);
+                .attr("stroke", d => d.year === selectedYear ? "#292f2a" : "#fffefa")
+                .attr("stroke-width", d => d.year === selectedYear ? 2 : 1)
+                .on("pointerenter", function(event, d) { showTooltip(this, d); })
+                .on("pointerleave", hideTooltip)
+                .on("focus", function(event, d) { showTooltip(this, d); })
+                .on("blur", hideTooltip)
+                .on("click", (event, d) => activatePoint(d))
+                .on("keydown", function(event, d) {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        activatePoint(d);
+                    } else if (event.key === "Escape") {
+                        hideTooltip();
+                    } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                        event.preventDefault();
+                        const points = container.selectAll(".line-point").nodes();
+                        const next = points.indexOf(this) + (event.key === "ArrowRight" ? 1 : -1);
+                        if (points[next]) points[next].focus({ preventScroll: true });
+                    }
+                });
         };
 
-        drawSegment(earlyRows, "Available-region average", "#d62728", "early-series");
-        drawSegment(laterRows, "Available-region average", "#0072b2", "later-series");
+        drawSegment(earlyRows, "Available-region average", "#d62728", "early-series", "early");
+        drawSegment(laterRows, "Available-region average", "#0072b2", "later-series", "later");
 
         svg.append("text")
             .attr("class", "axis-label")
@@ -95,10 +177,35 @@ const createLineChart = (data) => {
             .attr("y", viewH - 7)
             .attr("text-anchor", "middle")
             .text("Year");
+
+        // Preserve focus if a redraw replaces the point being inspected.
+        if (focusedYear !== null) {
+            const point = container.selectAll(".line-point")
+                .filter(d => d.year === focusedYear).node();
+            if (point) point.focus({ preventScroll: true });
+        }
+    };
+
+    const activatePoint = (row) => {
+        selectYear(row.year);
+        const point = container.selectAll(".line-point")
+            .filter(d => d.year === row.year).node();
+        point.focus({ preventScroll: true });
+        showTooltip(point, row);
     };
 
     container.select(".chart-status").remove();
     container.attr("aria-busy", "false");
+    d3.select("#line-legend").selectAll("button")
+        .property("disabled", false)
+        .on("click", function() { selectPeriod(this.value); });
+    container.on("pointerleave", hideTooltip);
+    d3.select("#line-reset").on("click", () => {
+        selectedPeriod = null;
+        selectedYear = null;
+        drawChart();
+        d3.select("#line-legend button").node().focus();
+    });
     drawChart();
     const resizeObserver = new ResizeObserver(drawChart);
     resizeObserver.observe(container.node());

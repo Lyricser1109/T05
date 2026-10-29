@@ -17,9 +17,7 @@ const createBarChart = (data) => {
         container.selectAll("svg").remove();
         const svg = container.append("svg")
             .attr("viewBox", `0 0 ${viewW} ${viewH}`)
-            .attr("role", "img")
-            .attr("aria-label", "Vertical bar chart comparing mean annual energy consumption of 55-inch LCD, LED and OLED TVs.");
-        svg.append("title").text("Mean annual energy consumption for 55-inch TVs");
+            .attr("role", "img");
         svg.append("desc")
             .text(data.map(d => `${d.technology}: ${d3.format(".1f")(d.energy)} kilowatt-hours per year.`).join(" "));
 
@@ -59,9 +57,7 @@ const createBarChart = (data) => {
             .attr("width", xScale.bandwidth())
             .attr("height", d => chartH - yScale(d.energy))
             .attr("rx", 3)
-            .attr("fill", d => colours(d.technology))
-            .append("title")
-            .text(d => `${d.technology}: ${d3.format(".1f")(d.energy)} kWh/year`);
+            .attr("fill", d => colours(d.technology));
         barAndLabel.append("text")
             .attr("class", "value-label")
             .attr("x", xScale.bandwidth() / 2)

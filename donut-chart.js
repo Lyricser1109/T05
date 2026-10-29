@@ -2,9 +2,16 @@
 const createDonutChart = (datasets) => {
     const container = d3.select("#donut-chart");
     const controls = d3.select("#donut-controls");
+    let selectedTechnology = null;
     const colours = d3.scaleOrdinal()
         .domain(["LCD", "LED", "OLED"])
         .range(["#0072b2", "#d62728", "#f2c811"]);
+
+    // Selecting a slice or its legend button performs the same action.
+    const selectTechnology = (technology) => {
+        selectedTechnology = selectedTechnology === technology ? null : technology;
+        drawChart();
+    };
 
     const drawChart = () => {
         // Keep the selected measure when resizing the chart.
@@ -13,6 +20,7 @@ const createDonutChart = (datasets) => {
         const data = datasets[metric];
         const totalEnergy = d3.sum(data, d => d.energy);
         const formatEnergy = d3.format(isMean ? ",.1f" : ",.0f");
+        const selected = data.find(d => d.technology === selectedTechnology);
 
         d3.select("#donut-heading").text(isMean
             ? "Mean energy by technology" : "Combined energy by technology");
@@ -22,26 +30,43 @@ const createDonutChart = (datasets) => {
         d3.select("#donut-note").text(isMean
             ? "Each arc is proportional to its technology’s supplied mean. These are comparisons of means, not shares of combined TV energy."
             : "Calculated by energy consumption to the number of TV entries.");
-        d3.select("#donut-data-link")
-            .attr("href", isMean ? "data/Ex5_TV_energy_Allsizes_byScreenType.csv" : "data/Ex5_TV_energy.csv")
-            .text(isMean ? "View all-sizes means (CSV) ↗" : "View TV dataset (CSV) ↗");
 
-        // Rebuild three HTML legend rows so values stay readable on mobile.
-        const legend = d3.select("#donut-legend")
-            .attr("aria-label", isMean ? "Mean annual energy by technology" : "Technology totals and shares");
-        legend.selectAll("li").remove();
+        // Keyed joins keep the native buttons and keyboard focus during redraws.
+        const legend = d3.select("#donut-legend");
         const legendItems = legend.selectAll("li")
-            .data(data)
+            .data(data, d => d.technology)
             .join("li");
-        legendItems.append("span")
+        const legendButtons = legendItems.selectAll("button")
+            .data(d => [d])
+            .join("button")
+            .attr("type", "button")
+            .attr("class", "donut-option")
+            .classed("is-selected", d => d.technology === selectedTechnology)
+            .attr("aria-pressed", d => String(d.technology === selectedTechnology))
+            .on("click", (event, d) => selectTechnology(d.technology));
+        legendButtons.selectAll(".swatch")
+            .data(d => [d])
+            .join("span")
             .attr("class", d => `swatch ${d.technology.toLowerCase()}`)
             .attr("aria-hidden", "true");
-        legendItems.append("span")
+        legendButtons.selectAll(".donut-label")
+            .data(d => [d])
+            .join("span")
+            .attr("class", "donut-label")
             .text(d => d.technology === "LED" ? "LED / LCD (LED)" : d.technology);
-        legendItems.append("span")
+        legendButtons.selectAll(".donut-value")
+            .data(d => [d])
+            .join("span")
             .attr("class", "donut-value")
             .text(d => isMean ? `${formatEnergy(d.energy)} kWh/yr`
                 : `${formatEnergy(d.energy)} kWh/yr · ${d3.format(".1%")(d.energy / totalEnergy)}`);
+
+        const detailText = selected
+            ? `${selected.technology}: ${formatEnergy(selected.energy)} kWh/year${isMean ? " (mean)" : ` · ${d3.format(".1%")(selected.energy / totalEnergy)} of combined energy`}`
+            : "";
+        const detail = d3.select("#donut-detail");
+        if (detail.text() !== detailText) detail.text(detailText);
+        d3.select("#donut-reset").property("hidden", !selected);
 
         // Sizes: the ring adapts to the available width.
         const viewW = container.node().clientWidth;
@@ -52,11 +77,7 @@ const createDonutChart = (datasets) => {
         container.selectAll("svg").remove();
         const svg = container.append("svg")
             .attr("viewBox", `0 0 ${viewW} ${viewH}`)
-            .attr("role", "img")
-            .attr("aria-label", isMean
-                ? "Donut chart comparing supplied mean annual energy consumption per TV for LCD, LED and OLED. Arc sizes are proportional to the means, not combined energy shares."
-                : "Donut chart showing estimated annual energy shares by screen technology across all represented TVs.");
-        svg.append("title").text(isMean ? "Mean energy by screen technology" : "Combined energy by screen technology");
+            .attr("role", "img");
         svg.append("desc")
             .text(data.map(d => isMean
                 ? `${d.technology}: mean ${formatEnergy(d.energy)} kilowatt-hours per TV per year.`
@@ -78,22 +99,30 @@ const createDonutChart = (datasets) => {
         chart.selectAll("path")
             .data(pie(data))
             .join("path")
+            .attr("class", "donut-slice")
             .attr("d", arc)
             .attr("fill", d => colours(d.data.technology))
-            .append("title")
-            .text(d => isMean ? `${d.data.technology}: mean ${formatEnergy(d.data.energy)} kWh/year per TV`
-                : `${d.data.technology}: ${formatEnergy(d.data.energy)} kWh/year (${d3.format(".1%")(d.data.energy / totalEnergy)})`);
+            .attr("opacity", d => !selectedTechnology || d.data.technology === selectedTechnology ? 1 : 0.3)
+            .attr("stroke", d => d.data.technology === selectedTechnology ? "#292f2a" : "none")
+            .attr("stroke-width", 2)
+            .on("click", (event, d) => selectTechnology(d.data.technology));
 
         chart.append("text")
             .attr("text-anchor", "middle")
-            .attr("y", -3)
+            .attr("y", -23)
+            .attr("class", "axis-label")
+            .text(selected ? selected.technology : "");
+        chart.append("text")
+            .attr("text-anchor", "middle")
+            .attr("y", selected ? 5 : -3)
             .attr("fill", "#292f2a")
             .attr("font-size", isMean ? Math.min(23, radius * 0.2) : Math.min(30, radius * 0.25))
             .attr("font-weight", 700)
-            .text(isMean ? "Mean energy" : d3.format(".3s")(totalEnergy));
+            .text(selected ? (isMean ? formatEnergy(selected.energy) : d3.format(".3s")(selected.energy))
+                : (isMean ? "Mean energy" : d3.format(".3s")(totalEnergy)));
         chart.append("text")
             .attr("text-anchor", "middle")
-            .attr("y", 20)
+            .attr("y", selected ? 28 : 20)
             .attr("class", "axis-label")
             .text(isMean ? "kWh/year" : "kWh/year · weighted");
     };
@@ -102,6 +131,11 @@ const createDonutChart = (datasets) => {
     container.attr("aria-busy", "false");
     controls.property("disabled", false);
     controls.selectAll("input").on("change", drawChart);
+    d3.select("#donut-reset").on("click", () => {
+        selectedTechnology = null;
+        drawChart();
+        d3.select("#donut-legend button").node().focus();
+    });
     drawChart();
     const resizeObserver = new ResizeObserver(drawChart);
     resizeObserver.observe(container.node());

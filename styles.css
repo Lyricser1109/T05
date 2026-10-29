@@ -390,6 +390,157 @@ h1 span {
   gap: 9px;
 }
 
+.donut-option,
+.period-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.donut-option:hover,
+.period-option:hover {
+  background: #f1f1e9;
+}
+
+.donut-option.is-selected,
+.period-option.is-selected {
+  border-color: var(--green);
+  background: #edf3ed;
+}
+
+.donut-option:focus-visible,
+.donut-reset:focus-visible,
+.period-option:focus-visible,
+.line-reset:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+.donut-slice {
+  cursor: pointer;
+}
+
+.donut-slice:hover {
+  filter: brightness(0.92);
+}
+
+.donut-selection,
+.line-selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.donut-reset,
+.line-reset {
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--white);
+  color: var(--green);
+  font: inherit;
+  cursor: pointer;
+}
+
+.donut-reset:hover,
+.line-reset:hover {
+  border-color: var(--green);
+}
+
+.donut-reset[hidden],
+.line-reset[hidden] {
+  display: none;
+}
+
+.line-segment,
+.line-point {
+  cursor: pointer;
+}
+
+.line-point:hover,
+.line-point:focus-visible {
+  outline: none;
+  stroke: var(--ink);
+  stroke-width: 2px;
+}
+
+#line-chart {
+  position: relative;
+}
+
+.line-tooltip {
+  position: absolute;
+  z-index: 2;
+  width: 190px;
+  max-width: calc(100% - 16px);
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--point-colour, var(--green));
+  border-radius: 10px;
+  background: var(--white);
+  box-shadow: 0 10px 28px rgba(41, 47, 42, 0.16);
+  color: var(--ink);
+  pointer-events: none;
+}
+
+.line-tooltip[hidden] {
+  display: none;
+}
+
+.line-tooltip-year {
+  margin-bottom: 5px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.line-tooltip-caption {
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.line-tooltip-price {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.line-tooltip-price strong {
+  font-size: 24px;
+  letter-spacing: -0.5px;
+}
+
+.line-tooltip-price span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.line-tooltip-regions {
+  margin-bottom: 0;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .donut-value {
   margin-left: auto;
   color: var(--muted);

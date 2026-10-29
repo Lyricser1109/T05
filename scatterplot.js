@@ -23,10 +23,8 @@ const createScatterPlot = (data) => {
         container.selectAll("svg").remove();
         const svg = container.append("svg")
             .attr("viewBox", `0 0 ${viewW} ${viewH}`)
-            .attr("role", "img")
-            .attr("aria-label", "Scatter plot with star rating on the horizontal axis and annual TV energy consumption on the vertical axis, coloured by screen technology.");
+            .attr("role", "img");
 
-        svg.append("title").text("Star rating and annual energy consumption");
         svg.append("desc")
             .text(`${visibleData.length} of ${data.length} grouped TV records shown. Selected technologies: ${[...selectedTechnologies].join(", ") || "none"}. Each point shows star rating and annual energy consumption in kilowatt-hours.`);
 
@@ -67,7 +65,7 @@ const createScatterPlot = (data) => {
             .attr("text-anchor", "middle")
             .text("Star rating");
 
-        // Bind one point per CSV row; native titles show details on hover.
+        // Bind one point per CSV row.
         chart.selectAll("circle")
             .data(visibleData)
             .join("circle")
@@ -77,9 +75,7 @@ const createScatterPlot = (data) => {
             .attr("fill", d => colours(d.technology))
             .attr("fill-opacity", 0.8)
             .attr("stroke", "#fffefa")
-            .attr("stroke-width", 0.5)
-            .append("title")
-            .text(d => `${d.brand} · ${d.technology} · ${d.screenSize}-inch\n${d.stars} stars · ${d3.format(",.1f")(d.energy)} kWh/year\nCount represented: ${d.count}`);
+            .attr("stroke-width", 0.5);
 
         if (visibleData.length === 0) {
             chart.append("text")
